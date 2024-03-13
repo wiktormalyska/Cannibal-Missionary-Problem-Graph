@@ -1,225 +1,166 @@
+import sys
+
 from pyvis.network import Network
-
-
-class Node:
-
-    def __init__(self, cannibal_left, cannibal_right, missionary_left, missionary_right, boat_pos):
-        self.cannibal_left = cannibal_left
-        self.cannibal_right = cannibal_right
-        self.missionary_left = missionary_left
-        self.missionary_right = missionary_right
-        self.boat_pos = boat_pos
-        self.index = 0
-
-    def __eq__(self, other):
-        return (self.cannibal_left == other.cannibal_left and
-                self.cannibal_right == other.cannibal_right and
-                self.missionary_left == other.missionary_left and
-                self.missionary_right == other.missionary_right and
-                self.boat_pos == other.boat_pos)
-
-    def __hash__(self):
-        return hash((self.cannibal_left, self.cannibal_right,
-                     self.missionary_left, self.missionary_right, self.boat_pos))
-
-    def get_as_label(self):
-        label = ('KL: ' + str(self.cannibal_left) + ' '
-                 + 'KR: ' + str(self.cannibal_right) + '\n '
-                 + 'ML: ' + str(self.missionary_left) + ' '
-                 + 'MR: ' + str(self.missionary_right) + '\n '
-                 + 'B: ' + str(self.boat_pos))
-        return label
+from collections import deque
 
 
 class Edge:
-    def __init__(self, node1, node2, instruction):
-        self.node1: Node = node1
-        self.node2: Node = node2
+    def __init__(self, from_node, to_node, instruction):
+        self.node1 = from_node
+        self.node2 = to_node
         self.instruction = instruction
+
+
+class Node:
+    def __init__(self, cl, cr, ml, mr, boat):
+        self.cl = cl
+        self.cr = cr
+        self.ml = ml
+        self.mr = mr
+        self.boat: bool = boat
+        self.index = self.get_index()
+
+    def get_index(self):
+        boat = 1 if self.boat else 0
+        return str(self.cl) + str(self.cr) + str(self.ml) + str(self.mr)+ str(boat)
 
 
 class Graph:
     def __init__(self):
+        self.nodes = []
         self.edges = []
-        self.nodes = set()
-     #   self.visited_nodes = set()
-        self.node_index = 0
+        self.queue = deque()
 
+    def nodes_contain(self, node: Node):
+        for n in self.nodes:
+            if n.index == node.index:
+                return True
+        return False
+
+    def edges_contain(self, edge: Edge):
+        for e in self.edges:
+            if e.node1.index == edge.node1.index and e.node2.index == edge.node2.index:
+                return True
+        return False
+
+    def add_node(self, node: Node):
+        if not self.nodes_contain(node):
+            self.nodes.append(node)
+            self.queue.append(node)
+
+    def process_queue(self):
+        while self.queue:
+            node = self.queue.popleft()
+            self.check_connections(node)
+
+    def check_connections(self, node: Node):
+        self.cl_to_r(node)
+        self.cr_to_l(node)
+        self.ml_to_r(node)
+        self.mr_to_l(node)
+        self.kl2_to_r(node)
+        self.kr2_to_l(node)
+        self.ml2_to_r(node)
+        self.mr2_to_l(node)
+        self.kl_ml_to_r(node)
+        self.kr_mr_to_l(node)
+        graph.process_queue()
+
+    def cl_to_r(self, node: Node):
+        if (node.mr >= node.cr + 1 or node.mr == 0) and node.boat == False and node.cl > 0:
+            new_node = Node(node.cl - 1, node.cr + 1, node.ml, node.mr, True)
+            if not self.nodes_contain(new_node):
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "1")):
+                self.edges.append(Edge(node, new_node, "1"))
+
+    def cr_to_l(self, node: Node):
+        if (node.ml >= node.cl + 1 or node.ml == 0) and node.boat == True and node.cr > 0:
+            new_node = Node(node.cl + 1, node.cr - 1, node.ml, node.mr, False)
+            if not self.nodes_contain(new_node):
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "2")):
+                self.edges.append(Edge(node, new_node, "2"))
+
+    def ml_to_r(self, node: Node):
+        if (node.ml - 1 >= node.cl or node.ml == 1) and node.boat == False and node.mr + 1 >= node.cr and node.ml > 0:
+            new_node = Node(node.cl, node.cr, node.ml - 1, node.mr + 1, True)
+            if new_node not in self.nodes:
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "3")):
+                self.edges.append(Edge(node, new_node, "3"))
+
+    def mr_to_l(self, node: Node):
+        if (node.mr - 1 >= node.cr or node.mr == 1) and node.boat == True and node.ml + 1 >= node.cl and node.mr > 0:
+            new_node = Node(node.cl, node.cr, node.ml + 1, node.mr - 1, False)
+            if new_node not in self.nodes:
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "4")):
+                self.edges.append(Edge(node, new_node, "4"))
+
+    def kl2_to_r(self, node: Node):
+        if (node.mr >= node.cr + 2 or node.mr == 0) and node.boat == False and node.cl > 1:
+            new_node = Node(node.cl - 2, node.cr + 2, node.ml, node.mr, True)
+            if not self.nodes_contain(new_node):
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "5")):
+                self.edges.append(Edge(node, new_node, "5"))
+
+    def kr2_to_l(self, node: Node):
+        if (node.ml >= node.cl + 2 or node.ml == 0) and node.boat == True and node.cr > 1:
+            new_node = Node(node.cl + 2, node.cr - 2, node.ml, node.mr, False)
+            if not self.nodes_contain(new_node):
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "6")):
+                self.edges.append(Edge(node, new_node, "6"))
+
+    def ml2_to_r(self, node: Node):
+        if (node.ml - 2 >= node.cl or node.ml == 2) and node.boat == False and node.mr + 2 >= node.cr and node.ml > 1:
+            new_node = Node(node.cl, node.cr, node.ml - 2, node.mr + 2, True)
+            if new_node not in self.nodes:
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "7")):
+                self.edges.append(Edge(node, new_node, "7"))
+
+    def mr2_to_l(self, node: Node):
+        if (node.mr - 2 >= node.cr or node.mr == 2) and node.boat == True and node.ml + 2 >= node.cl and node.mr > 1:
+            new_node = Node(node.cl, node.cr, node.ml + 2, node.mr - 2, False)
+            if new_node not in self.nodes:
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "8")):
+                self.edges.append(Edge(node, new_node, "8"))
+
+    def kl_ml_to_r(self, node: Node):
+        if node.boat == False and node.cl > 0 and node.ml > 0:
+            new_node = Node(node.cl - 1, node.cr + 1, node.ml - 1, node.mr + 1, True)
+            if not self.nodes_contain(new_node):
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "9")):
+                self.edges.append(Edge(node, new_node, "9"))
+
+    def kr_mr_to_l(self, node: Node):
+        if node.boat == True and node.cr > 0 and node.mr > 0:
+            new_node = Node(node.cl + 1, node.cr - 1, node.ml + 1, node.mr - 1, False)
+            if not self.nodes_contain(new_node):
+                self.add_node(new_node)
+            if not self.edges_contain(Edge(node, new_node, "10")):
+                self.edges.append(Edge(node, new_node, "10"))
     def print_graph(self):
         for edge in self.edges:
-            # print(edge.node1.get_as_label(), '\n->\n', edge.node2.get_as_label(), '\ninstruction:', edge.instruction, '\n')
-            print(edge.node1.index, '->', edge.node2.index, 'instruction:', edge.instruction, '\n')
-
-    def add_node(self, current_node):
-  #      if current_node not in self.visited_nodes:
-            if current_node.cannibal_left + current_node.cannibal_right > 3 or current_node.missionary_left + current_node.missionary_right > 3:
-                return
-            current_node.index = self.node_index
-            self.node_index += 1
-            #self.visited_nodes.add(current_node)
-            self.nodes.add(current_node)
-            self.check_connections(current_node)
-
-    def add_edge(self, node1, node2, instruction_number):
-        if node2 not in self.nodes:
-            self.add_node(node2)
-        self.edges.append(Edge(node1, node2, instruction_number))
-
-    def check_connections(self, current_node):
-        self.cannibal_to_right(current_node)
-        self.cannibal_to_left(current_node)
-        self.duo_cannibal_to_right(current_node)
-        self.duo_cannibal_to_left(current_node)
-        self.missionary_to_right(current_node)
-        self.missionary_to_left(current_node)
-        self.duo_missionary_to_right(current_node)
-        self.duo_missionary_to_left(current_node)
-        self.missionary_and_cannibal_to_right(current_node)
-        self.missionary_and_cannibal_to_left(current_node)
-
-    # warunki:
-
-    def cannibal_to_right(self, current_node):
-        is_cannibal_on_left = current_node.cannibal_left >= 1
-        is_enough_missionary_on_right = current_node.missionary_right >= current_node.cannibal_right + 1 or current_node.missionary_right == 0
-        is_boat_on_left = current_node.boat_pos == 0
-        if is_cannibal_on_left and is_enough_missionary_on_right and is_boat_on_left:
-            new_node = Node(
-                current_node.cannibal_left - 1,
-                current_node.cannibal_right + 1,
-                current_node.missionary_left,
-                current_node.missionary_right,
-                1)
-            self.add_edge(current_node, new_node, 1)
-
-    def cannibal_to_left(self, current_node):
-        if (current_node.cannibal_right >= 1
-                and (
-                        current_node.missionary_left >= current_node.cannibal_left + 1 or current_node.missionary_left == 0)
-                and current_node.boat_pos == 1):
-            new_node = Node(
-                current_node.cannibal_left + 1,
-                current_node.cannibal_right - 1,
-                current_node.missionary_left,
-                current_node.missionary_right,
-                0)
-            self.add_edge(current_node, new_node, 2)
-
-    def duo_cannibal_to_right(self, current_node):
-        if (current_node.cannibal_left >= 2
-                and (
-                        current_node.missionary_right >= current_node.cannibal_right + 2 or current_node.missionary_right == 0)
-                and current_node.boat_pos == 0):
-            new_node = Node(
-                current_node.cannibal_left - 2,
-                current_node.cannibal_right + 2,
-                current_node.missionary_left,
-                current_node.missionary_right,
-                1)
-            self.add_edge(current_node, new_node, 3)
-
-    def duo_cannibal_to_left(self, current_node):
-        if (current_node.cannibal_right >= 2
-                and (
-                        current_node.missionary_left >= current_node.cannibal_left + 2 or current_node.missionary_left == 0)
-                and current_node.boat_pos == 1):
-            new_node = Node(
-                current_node.cannibal_left + 2,
-                current_node.cannibal_right - 2,
-                current_node.missionary_left,
-                current_node.missionary_right,
-                0)
-            self.add_edge(current_node, new_node, 4)
-
-    def missionary_to_right(self, current_node):
-        if (current_node.missionary_left >= 1
-                and (
-                        current_node.missionary_left - 1 >= current_node.cannibal_left or current_node.missionary_left - 1 == 0)
-                and current_node.cannibal_right <= current_node.missionary_right + 1
-                and current_node.boat_pos == 0):
-            new_node = Node(
-                current_node.cannibal_left,
-                current_node.cannibal_right,
-                current_node.missionary_left - 1,
-                current_node.missionary_right + 1,
-                1)
-            self.add_edge(current_node, new_node, 5)
-
-    def missionary_to_left(self, current_node):
-        if (current_node.missionary_right >= 1
-                and (
-                        current_node.missionary_right - 1 >= current_node.cannibal_right or current_node.cannibal_right == 1)
-                and current_node.cannibal_left <= current_node.missionary_left + 1
-                and current_node.boat_pos == 1):
-            new_node = Node(
-                current_node.cannibal_left,
-                current_node.cannibal_right,
-                current_node.missionary_left + 1,
-                current_node.missionary_right - 1,
-                0)
-            self.add_edge(current_node, new_node, 6)
-
-    def duo_missionary_to_right(self, current_node):
-        if (current_node.missionary_left >= 2
-                and current_node.missionary_left - 2 >= current_node.cannibal_left
-                and current_node.missionary_right + 2 >= current_node.cannibal_right
-                and current_node.boat_pos == 0):
-            new_node = Node(
-                current_node.cannibal_left,
-                current_node.cannibal_right,
-                current_node.missionary_left - 2,
-                current_node.missionary_right + 2,
-                1)
-            self.add_edge(current_node, new_node, 7)
-
-    def duo_missionary_to_left(self, current_node):
-        if (current_node.missionary_right >= 2
-                and current_node.missionary_right - 2 >= current_node.cannibal_right
-                and current_node.missionary_left + 2 >= current_node.cannibal_left
-                and current_node.boat_pos == 1):
-            new_node = Node(
-                current_node.cannibal_left,
-                current_node.cannibal_right,
-                current_node.missionary_left + 2,
-                current_node.missionary_right - 2,
-                0)
-            self.add_edge(current_node, new_node, 8)
-
-    def missionary_and_cannibal_to_right(self, current_node):
-        if (current_node.missionary_left >= 1
-                and current_node.cannibal_left >= 1
-                and current_node.boat_pos == 0):
-            new_node = Node(
-                current_node.cannibal_left - 1,
-                current_node.cannibal_right + 1,
-                current_node.missionary_left - 1,
-                current_node.missionary_right + 1,
-                1)
-            self.add_edge(current_node, new_node, 9)
-
-    def missionary_and_cannibal_to_left(self, current_node):
-        if (current_node.missionary_right >= 1
-                and current_node.cannibal_right >= 1
-                and current_node.boat_pos == 1):
-            new_node = Node(
-                current_node.cannibal_left + 1,
-                current_node.cannibal_right - 1,
-                current_node.missionary_left + 1,
-                current_node.missionary_right - 1,
-                0)
-            self.add_edge(current_node, new_node, 10)
-
+            print(edge.node1.index, edge.node2.index, edge.instruction)
 
 graph = Graph()
-graph.add_node(Node(3, 0, 3, 0, 0))
+graph.add_node(Node(3, 0, 3, 0, False))
+graph.process_queue()
 graph.print_graph()
-network = Network(directed=True)
-for node in graph.nodes:
-    network.add_node(node.index, label=node.get_as_label(), title=str(node.index))
-for edge in graph.edges:
-    network.add_edge(edge.node1.index, edge.node2.index, label=str(edge.instruction))
+network = Network(directed=True, height="750px", width="100%", bgcolor="#222222", font_color="white")
+for nodee in graph.nodes:
+    network.add_node(nodee.index, label=str(nodee.index), title=str(nodee.index))
+for edgee in graph.edges:
+    network.add_edge(edgee.node1.index, edgee.node2.index, label=str(edgee.instruction))
 
 network.set_edge_smooth('dynamic')
 network.toggle_physics(True)
 network.show_buttons(filter_=['physics'])
+network.barnes_hut(gravity=-3000)
 network.show("graph.html", local=True, notebook=False)
