@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4.3.1
         with:
           name: graph page
-          path: graph.html
+          path: index.html
           
   publish:
     name: Publish on Pages
