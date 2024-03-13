@@ -46,22 +46,10 @@ class Graph:
         self.add_node(start_node)
 
     def add_node(self, node):
-        if node not in self.nodes:
-            self.nodes.add(node)
-            self.check_connections(node)
+        self.check_connections(node)
 
     def check_connections(self, node):
-        if self.cannibal_to_right(node):
-            self.index += 1
-            new_node = Node(self.index,
-                            node.cannibal_left - 1,
-                            node.cannibal_right + 1,
-                            node.missionary_left,
-                            node.missionary_right,
-                            'right')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 1))
+        self.cannibal_to_right(node)
         self.cannibal_to_left(node)
         self.duo_cannibal_to_right(node)
         self.duo_cannibal_to_left(node)
@@ -72,152 +60,149 @@ class Graph:
         self.missionary_and_cannibal_to_right(node)
         self.missionary_and_cannibal_to_left(node)
 
+    def add_edge(self, node1, node2, instruction_number):
+        if node2 not in self.nodes:
+            self.add_node(node2)
+            self.edges.append(Edge(node1, node2, instruction_number))
+        else:
+            self.edges.append(Edge(node1, node2, instruction_number))
+
     # warunki:
 
-    def cannibal_to_right(self, node):
-        if (node.cannibal_left >= 1
-                and (node.missionary_right >= node.cannibal_right + 1 or node.missionary_right == 0)
-                and node.boat_pos == 'left'):
-            return True
-        return False
-
-
-    def cannibal_to_left(self, node):
-        if (node.cannibal_right >= 1
-                and (node.missionary_left >= node.cannibal_left + 1 or node.missionary_left == 0)
-                and node.boat_pos == 'right'):
+    def cannibal_to_right(self, current_node):
+        if (current_node.cannibal_left >= 1
+                and (current_node.missionary_right >= current_node.cannibal_right + 1 or current_node.missionary_right == 0)
+                and current_node.boat_pos == 'left'):
             self.index += 1
             new_node = Node(self.index,
-                            node.cannibal_left + 1,
-                            node.cannibal_right - 1,
-                            node.missionary_left,
-                            node.missionary_right,
-                            'left')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 2))
-
-    def duo_cannibal_to_right(self, node):
-        if (node.cannibal_left >= 2
-                and (node.missionary_right >= node.cannibal_right + 2 or node.missionary_right == 0)
-                and node.boat_pos == 'left'):
-            self.index += 1
-            new_node = Node(self.index,
-                            node.cannibal_left - 2,
-                            node.cannibal_right + 2,
-                            node.missionary_left,
-                            node.missionary_right,
+                            current_node.cannibal_left - 1,
+                            current_node.cannibal_right + 1,
+                            current_node.missionary_left,
+                            current_node.missionary_right,
                             'right')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 3))
+            self.add_edge(current_node, new_node, 1)
 
-    def duo_cannibal_to_left(self, node):
-        if (node.cannibal_right >= 2
-                and (node.missionary_left >= node.cannibal_left + 2 or node.missionary_left == 0)
-                and node.boat_pos == 'right'):
+    def cannibal_to_left(self, current_node):
+        if (current_node.cannibal_right >= 1
+                and (
+                        current_node.missionary_left >= current_node.cannibal_left + 1 or current_node.missionary_left == 0)
+                and current_node.boat_pos == 'right'):
             self.index += 1
             new_node = Node(self.index,
-                            node.cannibal_left + 2,
-                            node.cannibal_right - 2,
-                            node.missionary_left,
-                            node.missionary_right,
+                            current_node.cannibal_left + 1,
+                            current_node.cannibal_right - 1,
+                            current_node.missionary_left,
+                            current_node.missionary_right,
                             'left')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 4))
+            self.add_edge(current_node, new_node, 2)
 
-    def missionary_to_right(self, node):
-        if (node.missionary_left >= 1
-                and (node.missionary_left - 1 >= node.cannibal_left or node.cannibal_left == 1)
-                and node.boat_pos == 'left'):
+    def duo_cannibal_to_right(self, current_node):
+        if (current_node.cannibal_left >= 2
+                and (
+                        current_node.missionary_right >= current_node.cannibal_right + 2 or current_node.missionary_right == 0)
+                and current_node.boat_pos == 'left'):
             self.index += 1
             new_node = Node(self.index,
-                            node.cannibal_left,
-                            node.cannibal_right,
-                            node.missionary_left - 1,
-                            node.missionary_right + 1,
+                            current_node.cannibal_left - 2,
+                            current_node.cannibal_right + 2,
+                            current_node.missionary_left,
+                            current_node.missionary_right,
                             'right')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 5))
+            self.add_edge(current_node, new_node, 3)
 
-    def missionary_to_left(self, node):
-        if (node.missionary_right >= 1
-                and (node.missionary_right - 1 >= node.cannibal_right or node.cannibal_right == 1)
-                and node.boat_pos == 'right'):
+    def duo_cannibal_to_left(self, current_node):
+        if (current_node.cannibal_right >= 2
+                and (
+                        current_node.missionary_left >= current_node.cannibal_left + 2 or current_node.missionary_left == 0)
+                and current_node.boat_pos == 'right'):
             self.index += 1
             new_node = Node(self.index,
-                            node.cannibal_left,
-                            node.cannibal_right,
-                            node.missionary_left + 1,
-                            node.missionary_right - 1,
+                            current_node.cannibal_left + 2,
+                            current_node.cannibal_right - 2,
+                            current_node.missionary_left,
+                            current_node.missionary_right,
                             'left')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 6))
+            self.add_edge(current_node, new_node, 4)
 
-    def duo_missionary_to_right(self, node):
-        if (node.missionary_left >= 2
-                and node.missionary_left - 2 >= node.cannibal_left
-                and node.missionary_right + 2 >= node.cannibal_right
-                and node.boat_pos == 'left'):
+    def missionary_to_right(self, current_node):
+        if (current_node.missionary_left >= 1
+                and (current_node.missionary_left - 1 >= current_node.cannibal_left or current_node.cannibal_left == 1)
+                and current_node.boat_pos == 'left'):
             self.index += 1
             new_node = Node(self.index,
-                            node.cannibal_left,
-                            node.cannibal_right,
-                            node.missionary_left - 2,
-                            node.missionary_right + 2,
+                            current_node.cannibal_left,
+                            current_node.cannibal_right,
+                            current_node.missionary_left - 1,
+                            current_node.missionary_right + 1,
                             'right')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 7))
+            self.add_edge(current_node, new_node, 5)
 
-    def duo_missionary_to_left(self, node):
-        if (node.missionary_right >= 2
-                and node.missionary_right - 2 >= node.cannibal_right
-                and node.missionary_left + 2 >= node.cannibal_left
-                and node.boat_pos == 'right'):
+    def missionary_to_left(self, current_node):
+        if (current_node.missionary_right >= 1
+                and (
+                        current_node.missionary_right - 1 >= current_node.cannibal_right or current_node.cannibal_right == 1)
+                and current_node.boat_pos == 'right'):
             self.index += 1
             new_node = Node(self.index,
-                            node.cannibal_left,
-                            node.cannibal_right,
-                            node.missionary_left + 2,
-                            node.missionary_right - 2,
+                            current_node.cannibal_left,
+                            current_node.cannibal_right,
+                            current_node.missionary_left + 1,
+                            current_node.missionary_right - 1,
                             'left')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 8))
+            self.add_edge(current_node, new_node, 6)
 
-    def missionary_and_cannibal_to_right(self, node):
-        if (node.missionary_left >= 1
-                and node.cannibal_left >= 1
-                and node.boat_pos == 'left'):
+    def duo_missionary_to_right(self, current_node):
+        if (current_node.missionary_left >= 2
+                and current_node.missionary_left - 2 >= current_node.cannibal_left
+                and current_node.missionary_right + 2 >= current_node.cannibal_right
+                and current_node.boat_pos == 'left'):
             self.index += 1
             new_node = Node(self.index,
-                            node.missionary_left - 1,
-                            node.cannibal_right + 1,
-                            node.missionary_left - 1,
-                            node.missionary_right + 1,
+                            current_node.cannibal_left,
+                            current_node.cannibal_right,
+                            current_node.missionary_left - 2,
+                            current_node.missionary_right + 2,
                             'right')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 9))
-
-    def missionary_and_cannibal_to_left(self, node):
-        if (node.missionary_right >= 1
-                and node.cannibal_right >= 1
-                and node.boat_pos == 'right'):
+            self.add_edge(current_node, new_node, 7)
+    def duo_missionary_to_left(self, current_node):
+        if (current_node.missionary_right >= 2
+                and current_node.missionary_right - 2 >= current_node.cannibal_right
+                and current_node.missionary_left + 2 >= current_node.cannibal_left
+                and current_node.boat_pos == 'right'):
             self.index += 1
             new_node = Node(self.index,
-                            node.missionary_left + 1,
-                            node.cannibal_right - 1,
-                            node.missionary_left + 1,
-                            node.missionary_right - 1,
+                            current_node.cannibal_left,
+                            current_node.cannibal_right,
+                            current_node.missionary_left + 2,
+                            current_node.missionary_right - 2,
                             'left')
-            self.add_node(new_node)
-            if not any(edge.node1 == node and edge.node2 == new_node for edge in self.edges):
-                self.edges.append(Edge(node, new_node, 10))
+            self.add_edge(current_node, new_node, 8)
+
+    def missionary_and_cannibal_to_right(self, current_node):
+        if (current_node.missionary_left >= 1
+                and current_node.cannibal_left >= 1
+                and current_node.boat_pos == 'left'):
+            self.index += 1
+            new_node = Node(self.index,
+                            current_node.missionary_left - 1,
+                            current_node.cannibal_right + 1,
+                            current_node.missionary_left - 1,
+                            current_node.missionary_right + 1,
+                            'right')
+            self.add_edge(current_node, new_node, 9)
+
+    def missionary_and_cannibal_to_left(self, current_node):
+        if (current_node.missionary_right >= 1
+                and current_node.cannibal_right >= 1
+                and current_node.boat_pos == 'right'):
+            self.index += 1
+            new_node = Node(self.index,
+                            current_node.missionary_left + 1,
+                            current_node.cannibal_right - 1,
+                            current_node.missionary_left + 1,
+                            current_node.missionary_right - 1,
+                            'left')
+            self.add_edge(current_node, new_node, 10)
 
 
 graph = Graph()
