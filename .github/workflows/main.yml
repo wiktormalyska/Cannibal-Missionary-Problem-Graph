@@ -25,3 +25,33 @@ jobs:
           pip install pyvis
       - name: Run build script
         run: python main.py
+
+      - name: Save graph.html as artifact
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: graph page
+          path: graph.html
+          
+  publish:
+    name: Publish on Pahes
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: Download Graph Page
+        uses: actions/download-artifact@v4.1.4
+        with:
+          name: graph
+          path: '.'
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
