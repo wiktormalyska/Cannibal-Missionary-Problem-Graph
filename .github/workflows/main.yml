@@ -39,7 +39,7 @@ jobs:
       - name: Save graph.html as artifact
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: graph page
+          name: graph-page
           path: index.html
           
   publish:
@@ -56,8 +56,8 @@ jobs:
       - name: Download Graph Page
         uses: actions/download-artifact@v4.1.4
         with:
-          name: graph page
-          path: '.'
+          name: graph-page
+          path: 'graph-page'
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -65,3 +65,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with: 
+          publish_dir: ./graph-page
