@@ -22,7 +22,15 @@ class Node:
 
     def get_index(self):
         boat = 1 if self.boat else 0
-        return str(self.cl) + str(self.cr) + str(self.ml) + str(self.mr)+ str(boat)
+        return str(self.cl) + str(self.cr) + str(self.ml) + str(self.mr) + str(boat)
+
+    def get_label(self):
+        if self.boat:
+            return ("C:" + str(self.cl) + "\t|B\t|\tC:" + str(self.cr) + "\n"
+                    + "M:" + str(self.ml) + "\t|B\t|\tM:" + str(self.mr) + "\n")
+        else:
+            return ("C:" + str(self.cl) + "\t|\tB|\tC:" + str(self.cr) + "\n"
+                    + "M:" + str(self.ml) + "\t|\tB|\tM:" + str(self.mr) + "\n")
 
 
 class Graph:
@@ -145,9 +153,11 @@ class Graph:
                 self.add_node(new_node)
             if not self.edges_contain(Edge(node, new_node, "10")):
                 self.edges.append(Edge(node, new_node, "10"))
+
     def print_graph(self):
         for edge in self.edges:
             print(edge.node1.index, edge.node2.index, edge.instruction)
+
 
 graph = Graph()
 graph.add_node(Node(3, 0, 3, 0, False))
@@ -155,7 +165,7 @@ graph.process_queue()
 graph.print_graph()
 network = Network(directed=True, height="750px", width="100%", bgcolor="#222222", font_color="white")
 for nodee in graph.nodes:
-    network.add_node(nodee.index, label=str(nodee.index), title=str(nodee.index))
+    network.add_node(nodee.index, label=str(nodee.get_label()), title=str(nodee.index))
 for edgee in graph.edges:
     network.add_edge(edgee.node1.index, edgee.node2.index, label=str(edgee.instruction))
 
