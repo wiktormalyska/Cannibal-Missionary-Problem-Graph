@@ -25,8 +25,8 @@ class Node:
         return str(self.cl) + str(self.cr) + str(self.ml) + str(self.mr) + str(boat)
 
     def get_label(self):
-        if self.boat:
-            return ("C:" + str(self.cl) + "\t|B\t|\tC:" + str(self.cr) + "\n"
+        if not self.boat:
+            return ("C:" + str(self.cl) + "\t|B|\tC:" + str(self.cr) + "\n"
                     + "M:" + str(self.ml) + "\t|B\t|\tM:" + str(self.mr) + "\n")
         else:
             return ("C:" + str(self.cl) + "\t|\tB|\tC:" + str(self.cr) + "\n"
