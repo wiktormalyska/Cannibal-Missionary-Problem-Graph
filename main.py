@@ -131,7 +131,7 @@ class Graph:
                 self.edges.append(Edge(node, new_node, "8"))
 
     def kl_ml_to_r(self, node: Node):
-        if node.boat == False and node.cl > 0 and node.ml > 0:
+        if node.boat == False and node.cl > 0 and node.ml > 0 and node.cr+1 <= node.mr+1:
             new_node = Node(node.cl - 1, node.cr + 1, node.ml - 1, node.mr + 1, True)
             if not self.nodes_contain(new_node):
                 self.add_node(new_node)
@@ -139,7 +139,7 @@ class Graph:
                 self.edges.append(Edge(node, new_node, "9"))
 
     def kr_mr_to_l(self, node: Node):
-        if node.boat == True and node.cr > 0 and node.mr > 0:
+        if node.boat == True and node.cr > 0 and node.mr > 0 and node.cl+1 <= node.ml+1:
             new_node = Node(node.cl + 1, node.cr - 1, node.ml + 1, node.mr - 1, False)
             if not self.nodes_contain(new_node):
                 self.add_node(new_node)
