@@ -57,11 +57,10 @@ jobs:
         uses: actions/download-artifact@v4.1.4
         with:
           name: graph-page
-          path: 'graph-page'
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          name: graph-page
+          path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
