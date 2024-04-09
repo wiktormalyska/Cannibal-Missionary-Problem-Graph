@@ -36,7 +36,7 @@ jobs:
       - name: Run build script
         run: python main.py
 
-      - name: Save graph.html as artifact
+      - name: Save index.html as artifact
         uses: actions/upload-artifact@v4.3.1
         with:
           name: graph-page
