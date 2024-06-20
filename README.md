@@ -6,3 +6,6 @@
 - boat fits max 2 persons 
 ## How to view graph preview:
 - click on the link attached to this repo
+
+
+### [Open Graph Preview](https://wiktormalyska.github.io/Cannibal-Missionary-Problem-Graph/)
